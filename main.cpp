@@ -106,9 +106,13 @@ int fadeInCntInit = fadeTimeMax;	//初期値
 int fadeInCnt = fadeInCntInit;		//フェードアウトのカウンタ
 int fadeInCntMax = fadeTimeMax;		//フェードアウトのカウンタMAX
 
-//弾の画像のハンドル 
+//弾の構造体 
 struct TAMA tama_moto;	//元	
 struct TAMA tama[TAMA_MAX];	//実際に使う
+
+//弾の発射カウンタ
+int tamaShotCnt = 0;
+int tamaShotCntMAX = 20;
 
 //プロトタイプ宣言
 VOID Title(VOID);		//タイトル画面
@@ -267,18 +271,21 @@ int WINAPI WinMain(
 BOOL GameLoad(VOID)
 {
 	//弾の分割数を設定
-	tama_moto.x = 4;
-	tama_moto.y = 1;
+	tama_moto.DivYoko = 4;
+	tama_moto.DivTate = 1;
 
 	//
 	strcpyDx(tama_moto.path, ".\\img\\dia_blue.png");
 	
 	//画像を分割して読み込み
-	if (LoadImageDivMem(&tama_moto.handle[0], ".\\img\\dia_blue.png", 4, 1) == FALSE) {return FALSE;}
+	if (LoadImageDivMem(&tama_moto.handle[0],tama_moto.path,tama_moto.DivYoko, tama_moto.DivTate) == FALSE) {return FALSE;}
+
+	//幅と高さを取得
+	GetGraphSize(tama_moto.handle[0], &tama_moto.width, &tama_moto.height);
 	
 	//位置を設定
 	tama_moto.x = GAME_WIDTH / 2 - tama_moto.width / 2;		//中央揃え
-	tama_moto.y = GAME_HEIGHT - tama_moto.height;	//画面下
+	tama_moto.y = GAME_HEIGHT  - tama_moto.height;	//画面下
 
 	//速度
 	tama_moto.Speed = 1;		
@@ -493,7 +500,7 @@ VOID TitleProc(VOID)
 /// </summary>
 VOID TitleDraw(VOID)
 {
-	DrawTama(&tama[0]);		//弾を描画
+	
 
 	DrawString(0, 0, "タイトル画面", GetColor(0, 0, 0));
 	return;
@@ -505,26 +512,31 @@ VOID TitleDraw(VOID)
 /// <param name=""></param>
 VOID DrawTama(TAMA* tama) 
 {
-	//弾の描画
-	DrawGraph(0, 0, tama->handle[tama->NowIndex], TRUE);
 
-	//画像を変えるタイミング
-	if (tama->AnimeCnt  < tama->AnimeCntMAX)
+	//	弾の描画ができるとき
+	if(tama->IsDraw == TRUE)
 	{
-		tama->AnimeCnt++;
-	}
-	else {
+		//弾の描画
+		DrawGraph(tama->x, tama->y, tama->handle[tama->NowIndex], TRUE);
 
-		//弾の添字が弾の分割数の最大よりも下の時
-		if (tama->NowIndex < TAMA_DIV_MAX - 1)
+		//画像を変えるタイミング
+		if (tama->AnimeCnt  < tama->AnimeCntMAX)
 		{
-			tama->NowIndex++;	//次の画像へ
+			tama->AnimeCnt++;
 		}
-		else
-		{
-			tama->NowIndex = 0;	//最初に戻す
+		else {
+
+			//弾の添字が弾の分割数の最大よりも下の時
+			if (tama->NowIndex < TAMA_DIV_MAX - 1)
+			{
+				tama->NowIndex++;	//次の画像へ
+			}
+			else
+			{
+				tama->NowIndex = 0;	//最初に戻す
+			}
+			tama->AnimeCnt = 0;
 		}
-		tama->AnimeCnt = 0;
 	}
 }
 
@@ -552,6 +564,67 @@ VOID PlayProc(VOID)
 		return;
 	}
 
+	//スペースキーを押しているとき
+	if (KeyDown(KEY_INPUT_SPACE) == TRUE)
+	{
+
+		if (tamaShotCnt == 0)
+		{
+			//弾を発射する
+			for (int i = 0; i < TAMA_MAX; i++)
+			{
+				if (tama[i].IsDraw == FALSE)
+				{
+					//弾を発射する
+					tama[i].IsDraw = TRUE;
+
+						//弾の位置を決める
+						tama[i].x = GAME_WIDTH / 2 - tama[i].width / 2;
+						tama[i].y = GAME_HEIGHT / 2 - tama[i].height / 2;
+
+					//弾の当たり判定の更新
+					CollUpdateTama(&tama[i]);
+
+					//弾を１発出したらループを抜ける
+					break;
+				}
+			}
+		}
+
+		//弾の発射待ち
+		if (tamaShotCnt < tamaShotCntMAX)
+		{
+			tamaShotCnt++;
+		}
+		else
+		{
+			tamaShotCnt = 0;
+		}
+
+
+	}
+
+	//弾を飛ばす
+	for (int i = 0; i < TAMA_MAX; i++)
+	{
+		//描画されているとき
+		if (tama[i].IsDraw == TRUE)
+		{
+			//tama[i].x
+			tama[i].y -= tama[i].Speed;
+
+			//画面外に出たら、描画しない
+			if (tama[i].y + tama[i].height < 0 ||	 //画面外（上）
+				tama[i].y > GAME_HEIGHT ||			 //画面外（下）
+				tama[i].x + tama[i].width < 0 ||	 //画面外（左）
+				tama[i].x > GAME_WIDTH)				 //画面外（右）
+			{
+				tama[i].IsDraw = FALSE;
+			}
+
+		}
+	}
+
 	return;
 }
 
@@ -560,7 +633,16 @@ VOID PlayProc(VOID)
 /// </summary>
 VOID PlayDraw(VOID)
 {
+	//弾を飛ばす
+	for (int i = 0; i < TAMA_MAX; i++)
+	{
+		//描画されているとき
+		if (tama[i].IsDraw == TRUE)
+		{
+			DrawTama(&tama[i]);
+		}
 
+	}
 	DrawString(0, 0, "プレイ画面", GetColor(0, 0, 0));
 	return;
 }
