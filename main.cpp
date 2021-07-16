@@ -3,7 +3,10 @@
 #include "keyboard.h"	//キーボードの処理
 #include "FPS.h"		//FPSの処理
 
-#include<math.h>		//数学
+#include "mouse.h"		//マウスの処理
+#include "shape.h"		//図形の処理
+
+#include <math.h>		//数学
 
 //マクロ定義
 #define TAMA_DIV_MAX	4	//弾の画像の最大数
@@ -246,6 +249,9 @@ int WINAPI WinMain(
 
 		//キーボード入力の更新
 		AllKeyUpdate();
+
+		//マウスの入力の更新
+		MouseUpdate();
 
 		//FPS値の更新
 		FPSUpdate();
@@ -671,10 +677,13 @@ VOID PlayProc(VOID)
 		//プレイ画面に切り替え
 		ChangeScene(GAME_SCENE_END);
 
+		//マウスを描画する
+		SetMouseDispFlag(TRUE);
+
 		return;
 	}
 
-	//プレイヤーを操作する
+	/*プレイヤーを操作する
 	if (KeyDown(KEY_INPUT_A) == TRUE)
 	{
 		if (player.img.x - player.speed >= 0)
@@ -703,12 +712,20 @@ VOID PlayProc(VOID)
 			player.img.y += player.speed+5;
 		}
 	}
+	*/
+
+	//マウスの位置にプレイヤーを置く
+	player.img.x = mouse.Point.x - player.img.width / 2;
+	player.img.y = mouse.Point.y - player.img.height / 2;
 
 	//プレイヤーの当たり判定の更新
 	CollUpdatePlayer(&player);
 
 	//スペースキーを押しているとき
-	if (KeyDown(KEY_INPUT_SPACE) == TRUE)
+	//if (KeyDown(KEY_INPUT_SPACE) == TRUE)
+
+	//マウスの左ボタンを押しているとき
+	if(MouseDown(MOUSE_INPUT_LEFT) == TRUE)
 	{
 		if (tamaShotCnt == 0)
 		{
@@ -831,15 +848,13 @@ VOID PlayProc(VOID)
 	{
 		TekiAddCnt = 0;
 
-
-
 		//敵を生成
 		for (int i = 0; i < TEKI_MAX; i++)
 		{
 			if (teki[i].img.IsDraw == FALSE)
 			{
 				int Bunkatu = 10;	//画面の横分割
-				
+
 				if (Score < 1000)
 				{
 					teki[i] = teki_moto[0];
@@ -859,6 +874,8 @@ VOID PlayProc(VOID)
 				teki[i].img.IsDraw = TRUE;	//描画する
 				break;
 			}
+
+
 		}
 	}
 
@@ -1007,6 +1024,9 @@ VOID PlayDraw(VOID)
 	SetFontSize(40);
 	DrawFormatString(0, 100, GetColor(255, 255, 255), "SCORE:%05d", Score);
 	SetFontSize(old);
+
+	//マウスの位置を描画
+	MouseDraw();
 
 	DrawString(0, 0, "プレイ画面", GetColor(0, 0, 0));
 	return;
