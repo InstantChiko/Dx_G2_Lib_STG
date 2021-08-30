@@ -131,6 +131,10 @@ CHARACTOR player;
 
 //背景画像
 IMAGE back[2];	//背景は２つの画像
+IMAGE Back[4];	//オープニングとエンディング画像用
+
+//音楽
+AUDIO backmusic[3];	//バックグラウンドミュージック
 
 //敵データ（元）
 CHARACTOR teki_moto[TEKI_KIND];
@@ -313,12 +317,21 @@ int WINAPI WinMain(
 	//背景画像を解放
 	DeleteGraph(back[0].handle);
 	DeleteGraph(back[1].handle);
+	DeleteGraph(Back[0].handle);
+	DeleteGraph(Back[1].handle);
+	DeleteGraph(Back[2].handle);
+	DeleteGraph(Back[3].handle);
 
 	//敵の画像を解放
 	for (int i = 0; i < TEKI_KIND; i++)
 	{
 	DeleteGraph(teki_moto[i].img.handle);
 	}
+
+	//音楽解放
+	DeleteSoundMem(backmusic[0].handle);
+	DeleteSoundMem(backmusic[1].handle);
+	DeleteSoundMem(backmusic[2].handle);
 
 	//ＤＸライブラリ使用の終了処理
 	DxLib_End();
@@ -380,11 +393,35 @@ BOOL GameLoad(VOID)
 	back[0].y = -back[0].height;
 	back[0].IsDraw = TRUE;	//描画する
 
-	//背景の画像を読み込み①
+	//背景の画像を読み込み②
 	if (LoadImageMem(&back[1], ".\\img\\hoshi_rev.png") == FALSE) { return FALSE; }
 	back[1].x = 0;
 	back[1].y = 0;
 	back[1].IsDraw = TRUE;	//描画する
+
+	//背景の画像を読み込み③
+	if (LoadImageMem(&Back[0], ".\\img\\opening.png") == FALSE) { return FALSE; }
+	Back[0].x = 0;
+	Back[0].y = 0;
+	Back[0].IsDraw = TRUE;	//描画する
+
+	//背景の画像を読み込み④
+	if (LoadImageMem(&Back[1], ".\\img\\spacewar.png") == FALSE) { return FALSE; }
+	Back[1].x = 0;
+	Back[1].y = 0;
+	Back[1].IsDraw = TRUE;	//描画する
+
+	//背景の画像を読み込み④
+	if (LoadImageMem(&Back[2], ".\\img\\Ending.png") == FALSE) { return FALSE; }
+	Back[2].x = 0;
+	Back[2].y = 0;
+	Back[2].IsDraw = TRUE;	//描画する
+
+	//背景の画像を読み込み⑤
+	if (LoadImageMem(&Back[3], ".\\img\\gameclear.png") == FALSE) { return FALSE; }
+	Back[3].x = 0;
+	Back[3].y = 0;
+	Back[3].IsDraw = TRUE;	//描画する
 
 		//敵の画像を読み込み
 	for (int i = 0; i < TEKI_KIND; i++)
@@ -395,6 +432,12 @@ BOOL GameLoad(VOID)
 		CollUpdatePlayer(&teki_moto[i]);	//当たり判定
 		teki_moto[0].img.IsDraw = FALSE;	//描画しません
 	}
+
+	//音楽読み込み
+	if (!LoadAudio(&backmusic[0], ".\\audio\\TitleBGM.m4a", 50, DX_PLAYTYPE_LOOP)) { return FALSE; }
+	if (!LoadAudio(&backmusic[1], ".\\audio\\PlayBGM.mp3", 50, DX_PLAYTYPE_LOOP)) { return FALSE; }
+	if (!LoadAudio(&backmusic[2], ".\\audio\\EndingBGM.mp3", 50, DX_PLAYTYPE_LOOP)) { return FALSE; }
+
 	return TRUE;	//全て読み込みた！ 
 }
 
@@ -593,11 +636,22 @@ VOID Title(VOID)
 /// </summary>
 VOID TitleProc(VOID)
 {
+	//音楽を流す処理
+	if (CheckSoundMem(backmusic[0].handle) == 0)
+	{
+		//BGMを流す
+		PlaySoundMem(backmusic[0].handle, backmusic[0].playType);
+	}
+
+
 
 	if (KeyClick(KEY_INPUT_RETURN) == TRUE)
 	{
 		//シーン切り替え
 		//次のシーンの初期化をここで行うと楽
+
+		//音楽を止める
+		StopSoundMem(backmusic[0].handle);
 
 		//ゲームの初期化
 		GameInit();
@@ -616,7 +670,8 @@ VOID TitleProc(VOID)
 /// </summary>
 VOID TitleDraw(VOID)
 {
-	
+	DrawGraph(Back[0].x, Back[0].y, Back[0].handle, TRUE);
+	DrawGraph(Back[1].x, Back[1].y, Back[1].handle, TRUE);
 
 	DrawString(0, 0, "タイトル画面", GetColor(0, 0, 0));
 	return;
@@ -672,10 +727,19 @@ VOID Play(VOID)
 /// </summary>
 VOID PlayProc(VOID)
 {
+	//音楽を流す処理
+	if (CheckSoundMem(backmusic[1].handle) == 0)
+	{
+		//BGMを流す
+		PlaySoundMem(backmusic[1].handle, backmusic[1].playType);
+	}
 	if (KeyClick(KEY_INPUT_RETURN) == TRUE)
 	{
 		//プレイ画面に切り替え
 		ChangeScene(GAME_SCENE_END);
+
+		//音楽を止める
+		StopSoundMem(backmusic[1].handle);
 
 		//マウスを描画する
 		SetMouseDispFlag(TRUE);
@@ -1048,8 +1112,20 @@ VOID End(VOID)
 /// </summary>
 VOID EndProc(VOID)
 {
+
+	//音楽を流す処理
+	if (CheckSoundMem(backmusic[2].handle) == 0)
+	{
+		//BGMを流す
+		PlaySoundMem(backmusic[2].handle, backmusic[2].playType);
+	}
+
 	if (KeyClick(KEY_INPUT_RETURN) == TRUE)
 	{
+
+		//音楽を止める
+		StopSoundMem(backmusic[2].handle);
+
 		//タイトル画面に切り替え
 		ChangeScene(GAME_SCENE_TITLE);
 
@@ -1064,6 +1140,9 @@ VOID EndProc(VOID)
 /// </summary>
 VOID EndDraw(VOID)
 {
+	DrawGraph(Back[2].x, Back[2].y, Back[2].handle, TRUE);
+	DrawGraph(Back[3].x, Back[3].y, Back[3].handle, TRUE);
+
 	DrawString(0, 0, "エンド画面", GetColor(0, 0, 0));
 	return;
 }
