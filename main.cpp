@@ -11,8 +11,8 @@
 //ƒ}ƒNƒ’è‹`
 #define TAMA_DIV_MAX	4	//’e‚Ì‰æ‘œ‚ÌÅ‘å”
 #define TAMA_MAX		100	//’e‚Ì‘”
-#define TEKI_KIND		8	//“G‚Ìí—Ş
-#define TEKI_MAX		10	//“G‚Ì”
+#define TEKI_KIND		1	//“G‚Ìí—Ş
+#define TEKI_MAX		100	//“G‚Ì”
 
 //\‘¢‘Ì‚Ì’è‹`
 
@@ -124,7 +124,7 @@ struct TAMA tama[TAMA_MAX];	//ÀÛ‚Ég‚¤
 
 //’e‚Ì”­ËƒJƒEƒ“ƒ^
 int tamaShotCnt = 0;
-int tamaShotCntMAX = 10;
+int tamaShotCntMAX = 5;
 
 //ƒvƒŒƒCƒ„[
 CHARACTOR player;
@@ -145,19 +145,19 @@ CHARACTOR teki[TEKI_MAX];
 //“Gƒf[ƒ^‚ÌƒpƒX
 char tekiPath[TEKI_KIND][255] =
 {
-	{".\\img\\teki_blue.png"},
-	{".\\img\\teki_gray.png"},
+	{".\\img\\Enemy.png"},
+	/*{".\\img\\teki_gray.png"},
 	{".\\img\\teki_green.png"},
 	{".\\img\\teki_mizu.png"},
 	{".\\img\\teki_purple.png"},
 	{".\\img\\teki_red.png"},
 	{".\\img\\teki_red_big.png"},
-	{".\\img\\teki_yellow.png"}
+	{".\\img\\teki_yellow.png"}*/
 };
 
 //“G‚ªo‚Ä‚­‚éƒJƒEƒ“ƒg
 int TekiAddCnt = 0;
-int TekiAddCntMax = 60;		//60FPS‚Å1‰ñEEE1•b‚É1‰ñ
+int TekiAddCntMax = 30;		//60FPS‚Å1‰ñEEE1•b‚É1‰ñ
 
 //ƒQ[ƒ€ƒXƒRƒA
 int Score = 0;
@@ -388,16 +388,16 @@ BOOL GameLoad(VOID)
 	player.img.IsDraw = TRUE;	//•`‰æ‚·‚é
 
 	//”wŒi‚Ì‰æ‘œ‚ğ“Ç‚İ‚İ‡@
-	if (LoadImageMem(&back[0], ".\\img\\hoshi.png") == FALSE) { return FALSE; }
+	if (LoadImageMem(&back[1], ".\\img\\Playback.jpg") == FALSE) { return FALSE; }
 	back[0].x = 0;
 	back[0].y = -back[0].height;
 	back[0].IsDraw = TRUE;	//•`‰æ‚·‚é
 
-	//”wŒi‚Ì‰æ‘œ‚ğ“Ç‚İ‚İ‡A
+	/*”wŒi‚Ì‰æ‘œ‚ğ“Ç‚İ‚İ‡A
 	if (LoadImageMem(&back[1], ".\\img\\hoshi_rev.png") == FALSE) { return FALSE; }
 	back[1].x = 0;
 	back[1].y = 0;
-	back[1].IsDraw = TRUE;	//•`‰æ‚·‚é
+	back[1].IsDraw = TRUE;	//•`‰æ‚·‚é*/
 
 	//”wŒi‚Ì‰æ‘œ‚ğ“Ç‚İ‚İ‡B
 	if (LoadImageMem(&Back[0], ".\\img\\opening.png") == FALSE) { return FALSE; }
@@ -427,8 +427,8 @@ BOOL GameLoad(VOID)
 	for (int i = 0; i < TEKI_KIND; i++)
 	{
 		if (LoadImageMem(&teki_moto[0].img, tekiPath[i]) == FALSE) { return FALSE; }
-		teki_moto[0].img.x = GAME_WIDTH / 2 - teki_moto[0].img.width;
-		teki_moto[0].img.y = -teki_moto[i].img.width;
+		teki_moto[0].img.x = -teki_moto[i].img.width;
+		teki_moto[0].img.y = GAME_HEIGHT / 2 - teki_moto[0].img.height;
 		CollUpdatePlayer(&teki_moto[i]);	//“–‚½‚è”»’è
 		teki_moto[0].img.IsDraw = FALSE;	//•`‰æ‚µ‚Ü‚¹‚ñ
 	}
@@ -451,9 +451,6 @@ BOOL GameLoad(VOID)
 /// <returns></returns>
 BOOL LoadImageDivMem(int* handle, const char* path, int bunkatuYoko, int bunkatuTate)
 {
-
-	
-
 	//’e‚Ì“Ç‚İ‚İ
 	int IsTamaLoad = -1;	//‰æ‘œ‚ª“Ç‚İ‚İ‚½‚©H
 
@@ -880,8 +877,9 @@ VOID PlayProc(VOID)
 			//’e‚ÌˆÊ’u‚ğC³
 			//tama[i].x;
 
+			//’e‚ğ‰¡‚É”ò‚Î‚·
 			tama[i].x = tama[i].startX + cos(tama[i].degree * DX_PI/ 180.0f) * tama[i].radius;
-			tama[i].y = tama[i].startY + sin(tama[i].degree * DX_PI/ 180.0f) * tama[i].radius;
+			tama[i].y = tama[i].startY + sin(tama[i].radius* DX_PI/ 180.0f) * tama[i].degree;
 
 			//‰QŠª‚É‚È‚é
 			//tama[i].degree++;
@@ -913,33 +911,31 @@ VOID PlayProc(VOID)
 		TekiAddCnt = 0;
 
 		//“G‚ğ¶¬
-		for (int i = 0; i < TEKI_MAX; i++)
+		for (int i = 1; i < TEKI_MAX; i++)
 		{
 			if (teki[i].img.IsDraw == FALSE)
 			{
 				int Bunkatu = 10;	//‰æ–Ê‚Ì‰¡•ªŠ„
 
-				if (Score < 1000)
+				if (Score < 10000)
 				{
 					teki[i] = teki_moto[0];
 				}
-				else if (Score < 2000)
+				/*else if (Score <= 20000)
 				{
-					teki[i] = teki_moto[2];
-				}
-				else
+					teki[i] = teki_moto[1];
+				}*/
+				/*else
 				{
 					teki[i] = teki_moto[GetRand(TEKI_KIND - 1)];
-				}
+				}*/
 
-				teki[i].img.x = GetRand(Bunkatu - 1) * GAME_WIDTH / Bunkatu;
-				teki[i].img.y = -teki[i].img.height;
+				teki[i].img.x = GetRand(Bunkatu - 1) + -GAME_WIDTH / Bunkatu;
+				teki[i].img.y = teki[i].img.height;
 
 				teki[i].img.IsDraw = TRUE;	//•`‰æ‚·‚é
 				break;
 			}
-
-
 		}
 	}
 
@@ -948,13 +944,13 @@ VOID PlayProc(VOID)
 	{
 		if (teki[i].img.IsDraw == TRUE)
 		{
-			teki[i].img.y += 1;	//‚Æ‚è‚ ‚¦‚¸‰º‚ÖˆÚ“®
+			teki[i].img.x -= 1;	//‚Æ‚è‚ ‚¦‚¸¶‚ÖˆÚ“®
 			
 			//“G‚Ì“–‚½‚è”»’è‚ÌXV
 			CollUpdateTeki(&teki[i]);
 
 			//“G‚ª‰º‚Ü‚Ås‚Á‚½‚ç•\¦‚µ‚È‚¢
-			if (teki[i].img.y > GAME_HEIGHT)
+			if (teki[i].img.x > GAME_WIDTH)
 			{
 				teki[i].img.IsDraw = FALSE;
 			}
@@ -993,11 +989,11 @@ VOID ShotTama(TAMA* tama, float deg)
 	tama->IsDraw = TRUE;
 
 	//’e‚ÌˆÊ’u‚ğŒˆ‚ß‚é
-	tama-> startX = player.img.x + player.img.width / 2 - tama->width / 2;
+	tama-> startX = player.img.x + (player.img.width  + tama->width / 2) + 4;
 	tama->startY = player.img.y;
 
 	//’e‚ÌŠp“x
-	tama->degree = deg;
+	tama->radius = deg;
 
 	//’e‚Ì‘¬“x‚ğ•Ï‚¦‚é
 	tama->Speed = 6;
@@ -1015,19 +1011,19 @@ VOID ShotTama(TAMA* tama, float deg)
 /// </summary>
 VOID PlayDraw(VOID)
 {
-	for (int i = 0; i < 2; i++)
+	for (int i = 1; i < 3; i++)
 	{
 		//•`‰æ
 		DrawGraph(back[i].x, back[i].y, back[i].handle, TRUE);
 
-		//‰æ‘œ‚ª‰º‚Ü‚Ås‚Á‚½‚Æ‚«
-		if (back[i].y > GAME_HEIGHT)
+		//‰æ‘œ‚ª¶‚Ü‚Ås‚Á‚½‚Æ‚«
+		if (back[i].x > GAME_WIDTH)
 		{
-			back[i].y = -back[i].height +1;	//‚‚³•ªAã‚É–ß‚·
+			back[i].x = back[1].width+1;	//‰¡•ªA‰E‚É–ß‚·
 		}
 
-		//‰æ‘œ‚ğ‰º‚É“®‚©‚·
-		back[i].y++;
+		//‰æ‘œ‚ğ¶‚É“®‚©‚·
+		back[i].x--;
 	}
 
 	//“G‚Ì•`‰æ
@@ -1086,7 +1082,7 @@ VOID PlayDraw(VOID)
 	//ƒXƒRƒA‚Ì•`‰æ
 	int old = GetFontSize();
 	SetFontSize(40);
-	DrawFormatString(0, 100, GetColor(255, 255, 255), "SCORE:%05d", Score);
+	DrawFormatString(0, 100, GetColor(255, 20, 25), "SCORE:%05d", Score);
 	SetFontSize(old);
 
 	//ƒ}ƒEƒX‚ÌˆÊ’u‚ğ•`‰æ

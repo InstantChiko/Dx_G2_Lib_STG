@@ -24,6 +24,7 @@
     <ProjectGuid>{4245f174-bcd6-4dff-8904-4f684f344708}</ProjectGuid>
     <RootNamespace>Dx_G2_Lib_STG</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>Sakuhin_1</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
