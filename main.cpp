@@ -12,7 +12,7 @@
 #define TAMA_DIV_MAX	4	//弾の画像の最大数
 #define TAMA_MAX		100	//弾の総数
 #define TEKI_KIND		1	//敵の種類
-#define TEKI_MAX		100	//敵の数
+#define TEKI_MAX		30	//敵の数
 
 //構造体の定義
 
@@ -130,8 +130,8 @@ int tamaShotCntMAX = 5;
 CHARACTOR player;
 
 //背景画像
-IMAGE back[2];	//背景は２つの画像
-IMAGE Back[4];	//オープニングとエンディング画像用
+IMAGE back[3];	//背景は2つの画像
+IMAGE Back[6];	//オープニングとエンディング画像用
 
 //音楽
 AUDIO backmusic[3];	//バックグラウンドミュージック
@@ -166,6 +166,10 @@ int Score = 0;
 VOID Title(VOID);		//タイトル画面
 VOID TitleProc(VOID);	//タイトル画面(処理)
 VOID TitleDraw(VOID);	//タイトル画面(描画)
+
+VOID Title2(VOID);		//タイトル画面
+VOID TitleProc2(VOID);	//タイトル画面(処理)
+VOID TitleDraw2(VOID);	//タイトル画面(描画)
 
 VOID Play(VOID);		//プレイ画面
 VOID PlayProc(VOID);	//プレイ画面(処理)
@@ -275,6 +279,9 @@ int WINAPI WinMain(
 		case GAME_SCENE_TITLE:
 			Title();			//タイトル画面
 			break;
+		case GAME_SCENE_TITLE2:
+			Title2();			//タイトル画面
+			break;
 		case GAME_SCENE_PLAY:
 			Play();				//プレイ画面
 			break;
@@ -321,6 +328,8 @@ int WINAPI WinMain(
 	DeleteGraph(Back[1].handle);
 	DeleteGraph(Back[2].handle);
 	DeleteGraph(Back[3].handle);
+	DeleteGraph(Back[4].handle);
+	DeleteGraph(Back[5].handle);
 
 	//敵の画像を解放
 	for (int i = 0; i < TEKI_KIND; i++)
@@ -388,16 +397,16 @@ BOOL GameLoad(VOID)
 	player.img.IsDraw = TRUE;	//描画する
 
 	//背景の画像を読み込み①
-	if (LoadImageMem(&back[1], ".\\img\\Playback.jpg") == FALSE) { return FALSE; }
-	back[0].x = 0;
-	back[0].y = -back[0].height;
+	if (LoadImageMem(&back[0], ".\\img\\Playback.png") == FALSE) { return FALSE; }
+	back[0].x = back[0].width;
+	back[0].y = 0;
 	back[0].IsDraw = TRUE;	//描画する
 
-	/*背景の画像を読み込み②
-	if (LoadImageMem(&back[1], ".\\img\\hoshi_rev.png") == FALSE) { return FALSE; }
+	//背景の画像を読み込み②
+	if (LoadImageMem(&back[1], ".\\img\\Playback2.png") == FALSE) { return FALSE; }
 	back[1].x = 0;
 	back[1].y = 0;
-	back[1].IsDraw = TRUE;	//描画する*/
+	back[1].IsDraw = TRUE;	//描画する
 
 	//背景の画像を読み込み③
 	if (LoadImageMem(&Back[0], ".\\img\\opening.png") == FALSE) { return FALSE; }
@@ -406,10 +415,22 @@ BOOL GameLoad(VOID)
 	Back[0].IsDraw = TRUE;	//描画する
 
 	//背景の画像を読み込み④
-	if (LoadImageMem(&Back[1], ".\\img\\spacewar.png") == FALSE) { return FALSE; }
-	Back[1].x = 0;
-	Back[1].y = 0;
+	if (LoadImageMem(&Back[1], ".\\img\\Title.png") == FALSE) { return FALSE; }
+	Back[1].x = 220;
+	Back[1].y = 170;
 	Back[1].IsDraw = TRUE;	//描画する
+
+		//背景の画像を読み込み⑤
+	if (LoadImageMem(&Back[4], ".\\img\\PushEnter.png") == FALSE) { return FALSE; }
+	Back[4].x = 260;
+	Back[4].y = 350;
+	Back[4].IsDraw = TRUE;	//描画する
+
+			//背景の画像を読み込み⑤
+	if (LoadImageMem(&Back[5], ".\\img\\setumei.png") == FALSE) { return FALSE; }
+	Back[5].x = 0;
+	Back[5].y = 0;
+	Back[5].IsDraw = TRUE;	//描画する
 
 	//背景の画像を読み込み④
 	if (LoadImageMem(&Back[2], ".\\img\\Ending.png") == FALSE) { return FALSE; }
@@ -418,9 +439,9 @@ BOOL GameLoad(VOID)
 	Back[2].IsDraw = TRUE;	//描画する
 
 	//背景の画像を読み込み⑤
-	if (LoadImageMem(&Back[3], ".\\img\\gameclear.png") == FALSE) { return FALSE; }
-	Back[3].x = 0;
-	Back[3].y = 0;
+	if (LoadImageMem(&Back[3], ".\\img\\GAMECLERA.png") == FALSE) { return FALSE; }
+	Back[3].x = 210;
+	Back[3].y = 150;
 	Back[3].IsDraw = TRUE;	//描画する
 
 		//敵の画像を読み込み
@@ -435,7 +456,7 @@ BOOL GameLoad(VOID)
 
 	//音楽読み込み
 	if (!LoadAudio(&backmusic[0], ".\\audio\\TitleBGM.m4a", 50, DX_PLAYTYPE_LOOP)) { return FALSE; }
-	if (!LoadAudio(&backmusic[1], ".\\audio\\PlayBGM.mp3", 50, DX_PLAYTYPE_LOOP)) { return FALSE; }
+	if (!LoadAudio(&backmusic[1], ".\\audio\\PlayBGM.wav", 50, DX_PLAYTYPE_LOOP)) { return FALSE; }
 	if (!LoadAudio(&backmusic[2], ".\\audio\\EndingBGM.mp3", 50, DX_PLAYTYPE_LOOP)) { return FALSE; }
 
 	return TRUE;	//全て読み込みた！ 
@@ -585,8 +606,8 @@ VOID GameInit(VOID)
 	player.img.IsDraw = TRUE;	//描画する
 
 	//背景画像を設定①
-	back[0].x = 0;
-	back[0].y = -back[0].height;
+	back[0].x = back[0].width;
+	back[0].y = 0;
 	back[0].IsDraw = TRUE;	//描画する
 
 	//背景画像を設定②
@@ -654,7 +675,7 @@ VOID TitleProc(VOID)
 		GameInit();
 
 		//プレイ画面に切り替え
-		ChangeScene(GAME_SCENE_PLAY);
+		ChangeScene(GAME_SCENE_TITLE2);
 
 		return;
 	}
@@ -669,8 +690,9 @@ VOID TitleDraw(VOID)
 {
 	DrawGraph(Back[0].x, Back[0].y, Back[0].handle, TRUE);
 	DrawGraph(Back[1].x, Back[1].y, Back[1].handle, TRUE);
+	DrawGraph(Back[4].x, Back[4].y, Back[4].handle, TRUE);
 
-	DrawString(0, 0, "タイトル画面", GetColor(0, 0, 0));
+	//DrawString(0, 0, "タイトル画面", GetColor(0, 0, 0));
 	return;
 }
 
@@ -709,6 +731,63 @@ VOID DrawTama(TAMA* tama)
 }
 
 /// <summary>
+/// 説明画面
+/// </summary>
+VOID Title2(VOID)
+{
+	TitleProc2();	//処理
+	TitleDraw2();	//描画
+
+	return;
+}
+
+/// <summary>
+/// 説明画面の処理
+/// </summary>
+VOID TitleProc2(VOID)
+{
+	//音楽を流す処理
+	/*if (CheckSoundMem(backmusic[0].handle) == 0)
+	{
+		//BGMを流す
+		PlaySoundMem(backmusic[0].handle, backmusic[0].playType);
+	}*/
+
+
+
+	if (KeyClick(KEY_INPUT_RETURN) == TRUE)
+	{
+		//シーン切り替え
+		//次のシーンの初期化をここで行うと楽
+
+		//音楽を止める
+		StopSoundMem(backmusic[0].handle);
+
+		//ゲームの初期化
+		GameInit();
+
+		//プレイ画面に切り替え
+		ChangeScene(GAME_SCENE_PLAY);
+
+		return;
+	}
+
+	return;
+}
+
+/// <summary>
+/// タイトル画面の描画
+/// </summary>
+VOID TitleDraw2(VOID)
+{
+	DrawGraph(Back[5].x, Back[5].y, Back[5].handle, TRUE);//数字変えて
+	DrawGraph(Back[4].x, Back[4].y, Back[4].handle, TRUE);
+
+	//DrawString(0, 0, "タイトル画面", GetColor(0, 0, 0));
+	return;
+}
+
+/// <summary>
 /// プレイ画面
 /// </summary>
 VOID Play(VOID)
@@ -730,7 +809,7 @@ VOID PlayProc(VOID)
 		//BGMを流す
 		PlaySoundMem(backmusic[1].handle, backmusic[1].playType);
 	}
-	if (KeyClick(KEY_INPUT_RETURN) == TRUE)
+	if (Score >= 15000)
 	{
 		//プレイ画面に切り替え
 		ChangeScene(GAME_SCENE_END);
@@ -743,7 +822,13 @@ VOID PlayProc(VOID)
 
 		return;
 	}
+	/*
+	//敵と自分が当たったら終了
+	else if (OnCollRect(player.coll = teki->coll) ==TRUE)
+	{
 
+	}
+	*/
 	/*プレイヤーを操作する
 	if (KeyDown(KEY_INPUT_A) == TRUE)
 	{
@@ -802,6 +887,7 @@ VOID PlayProc(VOID)
 				}
 					
 			}
+			
 			//弾を発射する
 			for (int i = 0; i < TAMA_MAX; i++)
 			{
@@ -851,7 +937,7 @@ VOID PlayProc(VOID)
 					
 			}
 		}
-
+		
 		//弾の発射待ち
 		if (tamaShotCnt < tamaShotCntMAX)
 		{
@@ -924,14 +1010,14 @@ VOID PlayProc(VOID)
 				/*else if (Score <= 20000)
 				{
 					teki[i] = teki_moto[1];
-				}*/
-				/*else
+				}
+				else
 				{
 					teki[i] = teki_moto[GetRand(TEKI_KIND - 1)];
 				}*/
 
-				teki[i].img.x = GetRand(Bunkatu - 1) + -GAME_WIDTH / Bunkatu;
-				teki[i].img.y = teki[i].img.height;
+				teki[i].img.x = GAME_WIDTH + 1;
+				teki[i].img.y = GetRand(Bunkatu - 1) * GAME_HEIGHT / Bunkatu;
 
 				teki[i].img.IsDraw = TRUE;	//描画する
 				break;
@@ -949,7 +1035,7 @@ VOID PlayProc(VOID)
 			//敵の当たり判定の更新
 			CollUpdateTeki(&teki[i]);
 
-			//敵が下まで行ったら表示しない
+			//敵が左まで行ったら表示しない
 			if (teki[i].img.x > GAME_WIDTH)
 			{
 				teki[i].img.IsDraw = FALSE;
@@ -1011,15 +1097,17 @@ VOID ShotTama(TAMA* tama, float deg)
 /// </summary>
 VOID PlayDraw(VOID)
 {
-	for (int i = 1; i < 3; i++)
+	
+	for (int i = 0; i < 2; i++)
 	{
 		//描画
 		DrawGraph(back[i].x, back[i].y, back[i].handle, TRUE);
 
+		//DrawFormatString(0, GAME_HEIGHT - 80, GetColor(255, 25, 25), "back1[x:%4d/y:%4d] back2[x:%4d/y:%4d]", back[0].x, back[0].y, back[1].x, back[1].y);
 		//画像が左まで行ったとき
-		if (back[i].x > GAME_WIDTH)
+		if (back[i].x < 0 -GAME_WIDTH)
 		{
-			back[i].x = back[1].width+1;	//横分、右に戻す
+			back[i].x = back[i].width - 1;	
 		}
 
 		//画像を左に動かす
@@ -1082,13 +1170,13 @@ VOID PlayDraw(VOID)
 	//スコアの描画
 	int old = GetFontSize();
 	SetFontSize(40);
-	DrawFormatString(0, 100, GetColor(255, 20, 25), "SCORE:%05d", Score);
+	DrawFormatString(0, 15, GetColor(255, 20, 25), "SCORE:%05d", Score);
 	SetFontSize(old);
 
 	//マウスの位置を描画
 	MouseDraw();
 
-	DrawString(0, 0, "プレイ画面", GetColor(0, 0, 0));
+	//DrawString(0, 0, "プレイ画面", GetColor(0, 0, 0));
 	return;
 }
 
@@ -1139,7 +1227,7 @@ VOID EndDraw(VOID)
 	DrawGraph(Back[2].x, Back[2].y, Back[2].handle, TRUE);
 	DrawGraph(Back[3].x, Back[3].y, Back[3].handle, TRUE);
 
-	DrawString(0, 0, "エンド画面", GetColor(0, 0, 0));
+	//DrawString(0, 0, "エンド画面", GetColor(0, 0, 0));
 	return;
 }
 
