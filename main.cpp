@@ -809,7 +809,7 @@ VOID PlayProc(VOID)
 		//BGMを流す
 		PlaySoundMem(backmusic[1].handle, backmusic[1].playType);
 	}
-	if (Score >= 15000)
+	if (Score >= 5000)
 	{
 		//プレイ画面に切り替え
 		ChangeScene(GAME_SCENE_END);
@@ -900,7 +900,7 @@ VOID PlayProc(VOID)
 				}
 					
 			}
-			//弾を発射する
+			/*弾を発射する
 			for (int i = 0; i < TAMA_MAX; i++)
 			{
 				if(tama[i].IsDraw == FALSE)
@@ -924,7 +924,7 @@ VOID PlayProc(VOID)
 				}
 					
 			}
-			//弾を発射する
+			弾を発射する
 			for (int i = 0; i < TAMA_MAX; i++)
 			{
 				if(tama[i].IsDraw == FALSE)
@@ -936,6 +936,7 @@ VOID PlayProc(VOID)
 				}
 					
 			}
+			*/
 		}
 		
 		//弾の発射待ち
@@ -1001,7 +1002,7 @@ VOID PlayProc(VOID)
 		{
 			if (teki[i].img.IsDraw == FALSE)
 			{
-				int Bunkatu = 10;	//画面の横分割
+				int Bunkatu = 8;	//画面の横分割
 
 				if (Score < 10000)
 				{
@@ -1030,7 +1031,7 @@ VOID PlayProc(VOID)
 	{
 		if (teki[i].img.IsDraw == TRUE)
 		{
-			teki[i].img.x -= 1;	//とりあえず左へ移動
+			teki[i].img.x -= 8;	//とりあえず左へ移動
 			
 			//敵の当たり判定の更新
 			CollUpdateTeki(&teki[i]);
@@ -1051,7 +1052,7 @@ VOID PlayProc(VOID)
 					if (OnCollRect(teki[i].coll, tama[cnt].coll) == TRUE)
 					{
 						tama[cnt].IsDraw = FALSE;					 //弾の描画をしない
-						teki[i].img.IsDraw = FALSE;				 //敵の描画をしない
+						teki[i].img.IsDraw = FALSE;					 //敵の描画をしない
 
 						Score += 100;
 					}
@@ -1295,6 +1296,8 @@ VOID ChangeProc(VOID)
 /// <summary>
 /// 切り替え画面の描画
 /// </summary>
+/// 
+
 VOID ChangeDraw(VOID)
 {
 	//以前のシーンを描画
@@ -1331,9 +1334,10 @@ VOID ChangeDraw(VOID)
 	//半透明終了
 	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
-	DrawString(0, 0, "切り替え画面", GetColor(0, 0, 0));
+	//DrawString(0, 0, "切り替え画面", GetColor(0, 0, 0));
 	return;
 }
+
 
 /// <summary>
 /// 当たり判定の領域更新（プレイヤー）
